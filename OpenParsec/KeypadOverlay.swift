@@ -153,7 +153,7 @@ struct KeypadOverlay: View {
                 .font(.system(size: 9, weight: .medium))
         }
         .foregroundColor(.white).frame(width: width, height: height)
-        .background(active ? Color.cyan.opacity(0.55) : Color.clear)
+        .background(active ? Color(red: 0, green: 0.75, blue: 0.85).opacity(0.55) : Color.clear)
         .modifier(KeypadGlassStyle())
         .overlay(Group {
             if editing {
