@@ -185,6 +185,9 @@ struct MenuRowsHeightKey: PreferenceKey {
 }
 
 struct ParsecView: View {
+	@StateObject private var keypad = KeypadStore()
+	@State private var keypadEditing = false
+	@AppStorage("keypad.visible.v1") private var keypadVisible = false
 	var controller: ContentView?
 
 	@State var showDCAlert: Bool = false
@@ -254,6 +257,10 @@ struct ParsecView: View {
 			UIViewControllerWrapper(self.parsecViewController)
 				.zIndex(1)
 				.prefersPersistentSystemOverlaysHidden()
+
+			if keypadVisible && !showSettings && !showMenu && !isReconnecting && !connectionLost && !showDCAlert && !dataModel.isBlocked {
+				KeypadOverlay(store: keypad, visible: $keypadVisible, editing: $keypadEditing).zIndex(1.5)
+			}
 
 			ParsecStatusBar(showMenu: $showMenu, showDCAlert: $showDCAlert, DCAlertText: $DCAlertText, parsecViewController: parsecViewController, isReconnecting: $isReconnecting, connectionLost: $connectionLost, onSilentDisconnect: { disconnect() })
 
@@ -331,6 +338,27 @@ struct ParsecView: View {
 							Spacer()
 						}
 					}
+					if !hideOverlay {
+						HStack {
+							Button(action: {
+								keypad.releaseAll()
+								keypadVisible = true
+								keypadEditing = true
+								showMenu = false
+							}) {
+								Image(systemName: "square.and.pencil")
+									.font(.system(size: 25, weight: .medium))
+									.foregroundColor(Color("Foreground"))
+									.frame(width: 48, height: 48)
+									.background(Color("BackgroundPrompt").opacity(keypadEditing && keypadVisible ? 0.85 : 0.5))
+									.cornerRadius(12)
+							}
+							.accessibilityLabel("Edit on-screen controls")
+							.accessibilityHint("Shows the keypad so you can move and customize buttons")
+							.padding(.leading)
+							Spacer()
+						}
+					}
 					if !hideKeyboardButton {
 						HStack {
 							Button(action: toggleKeyboard) {
@@ -366,6 +394,8 @@ struct ParsecView: View {
 			}
 			.zIndex(2)
 		}
+		.onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ParsecInputReleased"))) { _ in keypad.releaseAll() }
+		.onDisappear { keypad.releaseAll() }
 		.statusBarHidden(SettingsHandler.hideStatusBar)
 		.alert(isPresented: $showDCAlert) {
 			Alert(title: Text(DCAlertText),
@@ -406,6 +436,9 @@ struct ParsecView: View {
 		VStack(spacing: 3) {
 			ScrollView {
 				VStack(spacing: 3) {
+					Button(action: { keypad.releaseAll(); keypadVisible.toggle(); showMenu = false }) {
+						Text(keypadVisible ? "Hide Keypad" : "Show Keypad").padding(8).frame(maxWidth: .infinity)
+					}
 					Button(action: disableOverlay) {
 						Text("Hide Buttons")
 							.padding(8)
@@ -729,6 +762,7 @@ struct ParsecView: View {
 	}*/
 
 	func disconnect(isBackgroundDisconnect: Bool = false) {
+		keypad.releaseAll()
 		appNote("[stream] disconnect\(isBackgroundDisconnect ? " in the background" : "")")
 		if !isBackgroundDisconnect {
 			ParsecBackgroundManager.shared.endSession()
