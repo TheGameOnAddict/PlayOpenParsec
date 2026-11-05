@@ -186,6 +186,7 @@ struct MenuRowsHeightKey: PreferenceKey {
 
 struct ParsecView: View {
 	@StateObject private var keypad = KeypadStore()
+	@State private var keypadEditing = false
 	@AppStorage("keypad.visible.v1") private var keypadVisible = false
 	var controller: ContentView?
 
@@ -258,7 +259,7 @@ struct ParsecView: View {
 				.prefersPersistentSystemOverlaysHidden()
 
 			if keypadVisible && !showSettings && !showMenu && !isReconnecting && !connectionLost && !showDCAlert && !dataModel.isBlocked {
-				KeypadOverlay(store: keypad, visible: $keypadVisible).zIndex(1.5)
+				KeypadOverlay(store: keypad, visible: $keypadVisible, editing: $keypadEditing).zIndex(1.5)
 			}
 
 			ParsecStatusBar(showMenu: $showMenu, showDCAlert: $showDCAlert, DCAlertText: $DCAlertText, parsecViewController: parsecViewController, isReconnecting: $isReconnecting, connectionLost: $connectionLost, onSilentDisconnect: { disconnect() })
@@ -334,6 +335,27 @@ struct ParsecView: View {
 							}
 							.padding()
 							.edgesIgnoringSafeArea(.all)
+							Spacer()
+						}
+					}
+					if !hideOverlay {
+						HStack {
+							Button(action: {
+								keypad.releaseAll()
+								keypadVisible = true
+								keypadEditing = true
+								showMenu = false
+							}) {
+								Image(systemName: "square.and.pencil")
+									.font(.system(size: 25, weight: .medium))
+									.foregroundColor(Color("Foreground"))
+									.frame(width: 48, height: 48)
+									.background(Color("BackgroundPrompt").opacity(keypadEditing && keypadVisible ? 0.85 : 0.5))
+									.cornerRadius(12)
+							}
+							.accessibilityLabel("Edit on-screen controls")
+							.accessibilityHint("Shows the keypad so you can move and customize buttons")
+							.padding(.leading)
 							Spacer()
 						}
 					}

@@ -92,7 +92,7 @@ private struct KeypadGlassStyle: ViewModifier {
 struct KeypadOverlay: View {
     @ObservedObject var store: KeypadStore
     @Binding var visible: Bool
-    @State private var editing = false
+    @Binding var editing: Bool
     @State private var selected: KeypadButton?
     @State private var dragOrigins: [UUID: CGPoint] = [:]
 
@@ -103,9 +103,12 @@ struct KeypadOverlay: View {
                     key(button, size: geometry.size)
                 }
                 HStack(spacing: 16) {
-                    Button(editing ? "Done" : "Edit") {
+                    Button(action: {
                         store.releaseAll(); editing.toggle()
+                    }) {
+                        Label(editing ? "Done" : "Edit", systemImage: editing ? "checkmark" : "square.and.pencil")
                     }
+                    .accessibilityLabel(editing ? "Finish editing controls" : "Edit on-screen controls")
                     if editing {
                         Button(action: { selected = KeypadButton(label: "Space", keys: [44]) }) {
                             Image(systemName: "plus")

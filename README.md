@@ -35,6 +35,8 @@ If you can't change your wireless router's channel to 149 like me, my personal e
 
 While streaming, open the Parsec menu and choose **Show Keypad**. The default
 layout includes WASD, Space and a tap-only Alt + Tab shortcut.
+Tap the **square-and-pencil icon** below the Parsec icon to open the keypad
+directly in Edit mode. Choose **Done** in the keypad toolbar when finished.
 
 - Choose **Edit** in the floating keypad toolbar to move buttons. Drag any button
   anywhere in the stream area; positions are saved and adapt to rotation.
